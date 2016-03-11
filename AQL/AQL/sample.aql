@@ -1,0 +1,47 @@
+create view Number as
+	extract regex /[0-9]+(\.[0-9])*/
+		on D.text as number
+	from Document D;
+
+create view Att as
+	extract regex /Undergraduates|Postgraduates|Project|Established/
+		on D.text as att
+	from Document D;
+
+create view AttNumber as
+	extract pattern <A.att>{1, 2} (<N.number>)
+		return group 0 as attnumber
+		   and group 1 as number
+	from Number N, Att A;
+
+create view University as
+	extract regex /University/
+		on D.text
+		return group 0 as university
+	from Document D;
+output view Number;
+
+
+create view patternTest as
+	extract pattern (/\(/) <Token>{1, 19} (/\)/)
+		return group 0 as all
+		   and group 1 as left
+		   and group 2 as right
+	from SunUniversity SU;
+output view patternTest;
+
+create view patternTest1 as
+	extract pattern (/Website/ (<Token> {4, 5} /\./ <Token>{1,10}) <SU.university>)
+		return group 0 as PatternUniversity
+		   and group 1 as all
+		   and group 2 as web
+	from University SU;
+output view patternTest1;
+
+create view patternTest2 as
+	extract pattern <Token>{1, 5}(<S.university> (<Token> {1,5} /,/ {1, 2}))
+		return group 0 as all
+		   and group 1 as token
+		   and group 2 as end
+	from University S;
+output view patternTest2;

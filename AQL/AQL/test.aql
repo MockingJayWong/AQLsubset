@@ -1,0 +1,51 @@
+create view Number as
+	extract regex /[0-9]+(\.[0-9])*/
+		on N.text as number
+	from Document N;
+output view Number;
+
+create view String as
+	extract regex /[A-Z][a-z]*/
+		on S.text 
+		return group 0 as string
+	from Document S;
+output view String;
+
+create view StringPattern as
+	extract pattern (<S.string>{1,2})
+		return group 0 as stringPattern
+		   and group 1 as stringElemnt
+	from String S;
+output view StringPattern;
+
+create view patternTest as
+	extract pattern ( (<S.stringPattern> <Token> {1,2}) (<N.number> /s/) <Token> {2,3} )
+		return group 0 as test
+		   and group 1 as all
+		   and group 2 as stringToken
+		   and group 3 as number
+	from Number N, StringPattern S;
+output view patternTest;
+
+create view patternTest1 as
+	extract pattern ( (<S2.stringPattern>{1, 4}) /and/ {1, 2} (<S2.stringPattern>))
+		return group 0 as test1
+		   and group 1 as all
+		   and group 2 as string1
+		   and group 3 as string2
+	from String S1, StringPattern S2;
+output view patternTest1;
+
+create view Select as
+	select PT1.string1 as select1,
+		PT1.string1 as select2,
+		N.number as select3
+  	from patternTest1 PT1, Number N;
+output view Select;
+
+create view emptySet as
+	extract pattern /bianyiyuanli/ (<S.select1>)
+		return group 0 as empty
+		   and group 1 as LongEmptySet
+	from Select S;
+output view emptySet;
